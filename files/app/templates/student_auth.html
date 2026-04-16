@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+    <div class="card p-4 p-md-4">
+
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h4 class="mb-0">学生入口</h4>
+        <a class="btn btn-outline-secondary btn-sm" href="/">返回首页</a>
+      </div>
+
+      <div class="text-muted small mb-3">
+        本页面支持学生账号登录与注册（队长）。评审专家/管理员账号不开放注册。
+      </div>
+
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+
+      <ul class="nav nav-pills mb-3" id="studentAuthTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if mode != 'register' %}active{% endif %}"
+                  id="tab-login"
+                  data-bs-toggle="pill"
+                  data-bs-target="#pane-login"
+                  type="button" role="tab">
+            登录
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if mode == 'register' %}active{% endif %}"
+                  id="tab-register"
+                  data-bs-toggle="pill"
+                  data-bs-target="#pane-register"
+                  type="button" role="tab">
+            注册
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- 登录 -->
+        <div class="tab-pane fade {% if mode != 'register' %}show active{% endif %}" id="pane-login" role="tabpanel">
+          <form method="post" action="/login">
+            <input type="hidden" name="role" value="student">
+
+            <div class="mb-3">
+              <label class="form-label">用户名</label>
+              <input class="form-control" name="username" required autocomplete="username">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">密码</label>
+              <input class="form-control" name="password" type="password" required autocomplete="current-password">
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-primary" type="submit">学生登录</button>
+            </div>
+          </form>
+
+          <div class="text-muted small mt-3">
+            没有账号？点击上方“注册”。
+          </div>
+        </div>
+
+        <!-- 注册 -->
+        <div class="tab-pane fade {% if mode == 'register' %}show active{% endif %}" id="pane-register" role="tabpanel">
+          <form method="post" action="/register">
+            <div class="mb-3">
+              <label class="form-label">用户名</label>
+              <input class="form-control" name="username" required autocomplete="username">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">密码</label>
+              <input class="form-control" name="password" type="password" required autocomplete="new-password">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">确认密码</label>
+              <input class="form-control" name="password2" type="password" required autocomplete="new-password">
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-success" type="submit">注册并登录</button>
+            </div>
+          </form>
+
+          <div class="text-muted small mt-3">
+            已有账号？点击上方“登录”。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 需要 bootstrap 的 JS 才能切换 tab -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

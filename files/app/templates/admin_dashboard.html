@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>超级管理员后台</h4>
+
+<p><a href="/admin/users">用户管理</a></p>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header">Rubric（评分小项）</div>
+      <div class="card-body">
+        <form method="post" action="/admin/rubric/add" class="row g-2">
+          <div class="col-12">
+            <input class="form-control" name="name" placeholder="评分项名称" required>
+          </div>
+          <div class="col-6">
+            <input class="form-control" name="max_score" type="number" step="0.5" placeholder="满分" required>
+          </div>
+          <div class="col-6">
+            <input class="form-control" name="order" type="number" placeholder="排序" value="0">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary" type="submit">新增评分项</button>
+          </div>
+        </form>
+
+        <hr>
+
+        <div class="text-muted mb-2">说明：停用后不出现在老师评分表；可在此处恢复启用。</div>
+
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th style="width: 80px;">order</th>
+              <th>name</th>
+              <th style="width: 100px;">max</th>
+              <th style="width: 80px;">状态</th>
+              <th style="width: 160px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rubric_items %}
+              <tr class="{% if not r.is_active %}table-secondary{% endif %}">
+                <td>
+                  <form method="post" action="/admin/rubric/{{ r.id }}/update" class="d-flex gap-2">
+                    <input class="form-control form-control-sm" name="order" type="number" value="{{ r.order }}">
+                  </form>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" name="name" value="{{ r.name }}" required>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" name="max_score" type="number" step="0.5" value="{{ r.max_score }}" required>
+                    <input type="hidden" name="is_active" value="{{ 1 if r.is_active else 0 }}">
+                </td>
+                <td>
+                    {% if r.is_active %}
+                      <span class="text-success">启用</span>
+                    {% else %}
+                      <span class="text-muted">停用</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn btn-outline-primary btn-sm" type="submit">保存</button>
+                  </form>
+
+                  {% if r.is_active %}
+                    <form method="post" action="/admin/rubric/{{ r.id }}/toggle" style="display:inline;">
+                      <input type="hidden" name="is_active" value="0">
+                      <button class="btn btn-outline-danger btn-sm"
+                              type="submit"
+                              onclick="return confirm('确认停用该评分项？停用后不会出现在老师评分表中。');">
+                        停用
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="/admin/rubric/{{ r.id }}/toggle" style="display:inline;">
+                      <input type="hidden" name="is_active" value="1">
+                      <button class="btn btn-outline-success btn-sm" type="submit">
+                        启用
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-success btn-sm" href="/admin/export.xlsx?group=undergrad">导出本科组 Excel</a>
+          <a class="btn btn-success btn-sm" href="/admin/export.xlsx?group=postgrad">导出研究生组 Excel</a>
+          <a class="btn btn-outline-success btn-sm" href="/admin/export.xlsx?mode=split">导出两组（分 Sheet）</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header">作品/匿名PDF/平均分概览（仅统计已提交评分）</div>
+      <div class="card-body">
+        <table class="table table-striped table-sm">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>组别</th>
+              <th>作品名称</th>
+              <th>avg</th>
+              <th>匿名PDF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in overview %}
+              <tr>
+                <td>{{ it.submission.id }}</td>
+                <td>{{ it.group_label }}</td>
+                <td>{{ it.team.work_name }}</td>
+                <td>{{ it.avg }}</td>
+
+                <td>
+                  {% if it.submission.paper_pdf_anonymous_path %}
+                    <a href="/files/{{ it.submission.id }}/paper_pdf_anonymous" target="_blank">查看</a>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="text-muted">老师互相看不到对方评分；这里只是超管概览与导出入口。</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>用户管理</h4>
+<div class="mb-2">
+  <a class="btn btn-outline-secondary btn-sm" href="/admin">返回后台首页</a>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'student' %}active{% endif %}"
+       href="/admin/users?tab=student">学生</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'teacher' %}active{% endif %}"
+       href="/admin/users?tab=teacher">评委老师</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'superadmin' %}active{% endif %}"
+       href="/admin/users?tab=superadmin">超级管理员</a>
+  </li>
+</ul>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h6 class="card-title mb-3">筛选/查找</h6>
+
+    <form method="get" action="/admin/users" class="row g-2 align-items-end">
+      <input type="hidden" name="tab" value="{{ tab }}">
+
+      <div class="col-12 col-md-4">
+        <label class="form-label">登录账号（username）关键字</label>
+        <input class="form-control" name="username" value="{{ q_username }}" placeholder="例如：2026 / teamA / alice">
+      </div>
+
+      {% if tab == 'student' %}
+      <div class="col-12 col-md-4">
+        <label class="form-label">队长姓名关键字（leader_name）</label>
+        <input class="form-control" name="leader_name" value="{{ q_leader_name }}" placeholder="例如：张三">
+      </div>
+      {% endif %}
+
+      <div class="col-12 col-md-4 d-grid">
+        <button class="btn btn-primary" type="submit">查询</button>
+      </div>
+    </form>
+
+    {% if error %}
+      <div class="alert alert-danger mt-3 mb-0">{{ error }}</div>
+    {% endif %}
+    {% if message %}
+      <div class="alert alert-success mt-3 mb-0">{{ message }}</div>
+    {% endif %}
+  </div>
+</div>
+
+{% if tab == 'teacher' %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h6 class="card-title mb-3">创建评委账号（Teacher）</h6>
+    <form method="post" action="/admin/users/create-teacher" class="row g-2">
+      <div class="col-12 col-md-4">
+        <input class="form-control" name="username" placeholder="用户名" required>
+      </div>
+      <div class="col-12 col-md-3">
+        <input class="form-control" name="password" type="password" placeholder="密码" required>
+      </div>
+      <div class="col-12 col-md-3">
+        <input class="form-control" name="password2" type="password" placeholder="确认密码" required>
+      </div>
+      <div class="col-12 col-md-2 d-grid">
+        <button class="btn btn-success" type="submit">创建</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% macro pager() %}
+  <nav>
+    <ul class="pagination pagination-sm">
+      <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+        <a class="page-link"
+           href="/admin/users?tab={{ tab }}&page={{ page - 1 }}&username={{ q_username }}{% if tab=='student' %}&leader_name={{ q_leader_name }}{% endif %}">
+          上一页
+        </a>
+      </li>
+
+      <li class="page-item disabled">
+        <span class="page-link">第 {{ page }} / {{ total_pages }} 页（共 {{ total }} 条）</span>
+      </li>
+
+      <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+        <a class="page-link"
+           href="/admin/users?tab={{ tab }}&page={{ page + 1 }}&username={{ q_username }}{% if tab=='student' %}&leader_name={{ q_leader_name }}{% endif %}">
+          下一页
+        </a>
+      </li>
+    </ul>
+  </nav>
+{% endmacro %}
+
+{{ pager() }}
+
+{% if tab == 'student' %}
+<div class="card mb-3">
+  <div class="card-header">学生账号（仅队长账号）</div>
+  <div class="card-body">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th style="width:80px;">内部ID</th>
+          <th style="width:160px;">登录账号（username）</th>
+          <th style="width:80px;">启用</th>
+          <th style="width:120px;">队长姓名</th>
+          <th>作品名称</th>
+          <th style="width:90px;">组别</th>
+          <th style="width:120px;">手机号</th>
+          <th style="width:360px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u, t in students_rows %}
+        <tr class="{% if not u.is_active %}table-secondary{% endif %}">
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>{{ "是" if u.is_active else "否" }}</td>
+          <td>{{ t.leader_name if t else "-" }}</td>
+          <td>{{ t.work_name if t else "-" }}</td>
+          <td>{{ t.group if t else "-" }}</td>
+          <td>{{ t.phone if t else "-" }}</td>
+          <td>
+            <form method="post" action="/admin/users/{{ u.id }}/reset-password" class="d-flex gap-2 mb-2">
+              <input class="form-control form-control-sm" name="new_password" type="password" placeholder="新密码" required>
+              <input class="form-control form-control-sm" name="new_password2" type="password" placeholder="确认新密码" required>
+              <button class="btn btn-outline-primary btn-sm" type="submit">重置</button>
+            </form>
+            <form method="post" action="/admin/users/{{ u.id }}/toggle-active" style="display:inline;">
+              <button class="btn btn-outline-danger btn-sm" type="submit">
+                {{ "停用" if u.is_active else "启用" }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if students_rows|length == 0 %}
+        <tr><td colspan="8" class="text-muted">无数据</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if tab == 'teacher' %}
+<div class="card mb-3">
+  <div class="card-header">评委老师账号</div>
+  <div class="card-body">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th style="width:80px;">内部ID</th>
+          <th>登录账号（username）</th>
+          <th style="width:80px;">启用</th>
+          <th style="width:240px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in teachers %}
+        <tr class="{% if not u.is_active %}table-secondary{% endif %}">
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>{{ "是" if u.is_active else "否" }}</td>
+          <td>
+            <form method="post" action="/admin/users/{{ u.id }}/reset-password" class="d-flex gap-2 mb-2">
+              <input class="form-control form-control-sm" name="new_password" type="password" placeholder="新密码" required>
+              <input class="form-control form-control-sm" name="new_password2" type="password" placeholder="确认新密码" required>
+              <button class="btn btn-outline-primary btn-sm" type="submit">重置</button>
+            </form>
+            <form method="post" action="/admin/users/{{ u.id }}/toggle-active" style="display:inline;">
+              <button class="btn btn-outline-danger btn-sm" type="submit">
+                {{ "停用" if u.is_active else "启用" }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if teachers|length == 0 %}
+        <tr><td colspan="4" class="text-muted">无数据</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if tab == 'superadmin' %}
+<div class="card mb-3">
+  <div class="card-header">超级管理员账号</div>
+  <div class="card-body">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th style="width:80px;">内部ID</th>
+          <th>登录账号（username）</th>
+          <th style="width:80px;">启用</th>
+          <th style="width:240px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in admins %}
+        <tr class="{% if not u.is_active %}table-secondary{% endif %}">
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>{{ "是" if u.is_active else "否" }}</td>
+          <td>
+            <form method="post" action="/admin/users/{{ u.id }}/reset-password" class="d-flex gap-2 mb-2">
+              <input class="form-control form-control-sm" name="new_password" type="password" placeholder="新密码" required>
+              <input class="form-control form-control-sm" name="new_password2" type="password" placeholder="确认新密码" required>
+              <button class="btn btn-outline-primary btn-sm" type="submit">重置</button>
+            </form>
+            <form method="post" action="/admin/users/{{ u.id }}/toggle-active" style="display:inline;">
+              <button class="btn btn-outline-danger btn-sm" type="submit">
+                {{ "停用" if u.is_active else "启用" }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if admins|length == 0 %}
+        <tr><td colspan="4" class="text-muted">无数据</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{{ pager() }}
+{% endblock %}

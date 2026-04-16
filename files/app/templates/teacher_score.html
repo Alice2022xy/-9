@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row">
+  <div class="col-lg-7">
+    <div class="card mb-2">
+      <div class="card-header">作品信息</div>
+      <div class="card-body">
+        <div><span class="text-muted">组别：</span>{{ group_label }}</div>
+        <div><span class="text-muted">作品名称：</span>{{ team.work_name }}</div>
+      </div>
+    </div>
+
+    <div class="mb-2 text-muted">左侧 PDF 预览（匿名版）</div>
+    {% if submission.paper_pdf_anonymous_path %}
+      <iframe class="w-100 pdf-pane" src="/files/{{ submission.id }}/paper_pdf_anonymous"></iframe>
+    {% else %}
+      <div class="alert alert-warning">学生尚未上传论文 PDF 匿名版，无法评分。</div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-5">
+    <div class="mb-2 text-muted">右侧评分表（只保存你的评分，其他老师不可见）</div>
+    <div class="score-pane">
+      <form method="post" action="/teacher/score/{{ submission.id }}">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>评分项</th>
+              <th>满分</th>
+              <th>得分（整数）</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for item in rubric_items %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.max_score|int }}</td>
+              <td style="width: 120px;">
+                <input class="form-control form-control-sm"
+                       type="number"
+                       step="1"
+                       min="0"
+                       max="{{ item.max_score|int }}"
+                       name="item_{{ item.id }}"
+                       value="{{ existing_points.get(item.id, 0)|int }}">
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="mb-2">
+          <label class="form-label">评语</label>
+          <textarea class="form-control" name="comment" rows="5" placeholder="请填写对作品的评价与建议" required>{{ score.comment or '' }}</textarea>
+        </div>
+
+        <div class="alert alert-info">
+          当前总分：{{ score.total_score }}；
+          状态：
+          {% if score.status == "submitted" %}
+            已评分
+          {% else %}
+            未评分
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-outline-primary" name="action" value="save" type="submit">保存草稿</button>
+          <button class="btn btn-success" name="action" value="submit" type="submit" {% if not submission.paper_pdf_anonymous_path %}disabled{% endif %}>提交评分</button>
+          <a class="btn btn-secondary" href="/teacher?group={{ team.group.value }}">返回列表</a>
+        </div>
+
+        {% if not submission.paper_pdf_anonymous_path %}
+          <div class="text-danger small mt-2">提示：未上传匿名PDF时，禁止提交评分。</div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

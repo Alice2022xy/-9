@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+
+  <div class="col-12 col-xl-11 col-xxl-10">
+
+
+    <div class="mb-3 card hero-card"
+         style="background: radial-gradient(1400px 700px at 10% 0%, rgba(13,110,253,.18), transparent 60%),
+                        radial-gradient(1100px 600px at 90% 20%, rgba(32,201,151,.14), transparent 55%),
+                        #ffffff;">
+      <div class="row align-items-center hero-inner g-5">
+        <div class="col-lg-8">
+          <div class="text-muted mb-2">校赛评分系统</div>
+          <h2 class="mb-3" style="font-weight:800;">
+            校赛评分系统
+          </h2>
+          <div class="text-muted">
+            学生提交材料；评审专家独立评分；管理员汇总导出成绩。
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          {% if user %}
+            <div class="alert alert-success mb-0">
+              你已登录：<b>{{ user.username }}</b>（{{ user.role }}）
+              <div class="mt-3 d-flex flex-wrap gap-2">
+                {% if user.role == "student" %}
+                  <a class="btn btn-primary" href="/student">进入学生端</a>
+                {% elif user.role == "teacher" %}
+                  <a class="btn btn-primary" href="/teacher">进入评审端</a>
+                {% elif user.role == "superadmin" %}
+                  <a class="btn btn-primary" href="/admin">进入管理员端</a>
+                {% endif %}
+                <form method="post" action="/logout" class="mb-0">
+                  <button class="btn btn-outline-secondary" type="submit">退出登录</button>
+                </form>
+              </div>
+            </div>
+          {% else %}
+            <div class="d-grid gap-3">
+              <a class="btn btn-primary btn-lg" href="/student/auth">学生登录/注册</a>
+              <a class="btn btn-outline-primary btn-lg" href="/login?role=teacher">评审专家登录</a>
+              <a class="btn btn-outline-dark btn-lg" href="/login?role=superadmin">管理员登录</a>
+            </div>
+
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<style>
+
+  .hero-card{
+    border-radius: 18px;
+  }
+
+  .hero-inner{
+
+    padding: 4rem 4.25rem;
+    min-height: 420px;
+  }
+
+
+  @media (max-width: 992px){
+    .hero-inner{
+      padding: 3rem 2.25rem;
+      min-height: 360px;
+    }
+  }
+
+
+  @media (max-width: 576px){
+    .hero-inner{
+      padding: 2rem 1.25rem;
+      min-height: auto;
+    }
+  }
+</style>
+
+{% endblock %}

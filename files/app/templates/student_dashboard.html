@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>学生端</h4>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">参赛信息</div>
+      <div class="card-body">
+        <form method="post" action="/student/team">
+          <div class="mb-2">
+            <label class="form-label">参赛组别 *</label>
+            <select class="form-select" name="group" required>
+              <option value="undergrad" {% if team and team.group.value == "undergrad" %}selected{% endif %}>本科组</option>
+              <option value="postgrad" {% if team and team.group.value == "postgrad" %}selected{% endif %}>研究生组</option>
+            </select>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">作品名称 *</label>
+            <input class="form-control" name="work_name" value="{{ team.work_name if team else '' }}" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">负责人 *</label>
+            <input class="form-control" name="leader_name" value="{{ team.leader_name if team else '' }}" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">学校 *</label>
+            <input class="form-control" name="school_name" value="{{ team.school_name if team else '' }}" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">学院及专业 *</label>
+            <input class="form-control" name="college_major" value="{{ team.college_major if team else '' }}" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">手机 *</label>
+            <input class="form-control" name="phone" value="{{ team.phone if team else '' }}" required>
+          </div>
+
+          <hr class="my-3">
+
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <label class="form-label">参赛成员1 *</label>
+              <input class="form-control" name="member1_name" value="{{ team.member1_name if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员1学院 *</label>
+              <input class="form-control" name="member1_college" value="{{ team.member1_college if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员1专业 *</label>
+              <input class="form-control" name="member1_major" value="{{ team.member1_major if team else '' }}" required>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <label class="form-label">参赛成员2 *</label>
+              <input class="form-control" name="member2_name" value="{{ team.member2_name if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员2学院 *</label>
+              <input class="form-control" name="member2_college" value="{{ team.member2_college if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员2专业 *</label>
+              <input class="form-control" name="member2_major" value="{{ team.member2_major if team else '' }}" required>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <label class="form-label">参赛成员3 *</label>
+              <input class="form-control" name="member3_name" value="{{ team.member3_name if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员3学院 *</label>
+              <input class="form-control" name="member3_college" value="{{ team.member3_college if team else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">参赛成员3专业 *</label>
+              <input class="form-control" name="member3_major" value="{{ team.member3_major if team else '' }}" required>
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <label class="form-label">指导老师姓名</label>
+              <input class="form-control" name="advisor_name" value="{{ team.advisor_name if team and team.advisor_name else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label">指导老师学院</label>
+              <input class="form-control" name="advisor_college" value="{{ team.advisor_college if team and team.advisor_college else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label">指导老师手机</label>
+              <input class="form-control" name="advisor_phone" value="{{ team.advisor_phone if team and team.advisor_phone else '' }}">
+            </div>
+          </div>
+
+          <button class="btn btn-primary" type="submit">保存参赛信息</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">上传匿名论文 PDF</div>
+      <div class="card-body">
+        {% if upload_error %}
+          <div id="uploadAlert" class="alert alert-danger" role="alert">
+            {{ upload_error }}
+          </div>
+        {% endif %}
+
+        {% if upload_success %}
+          <div id="uploadAlert" class="alert alert-success" role="alert">
+            {{ upload_success }}
+          </div>
+        {% endif %}
+
+        {% if not team %}
+          <div class="alert alert-warning">请先保存参赛信息再上传。</div>
+        {% endif %}
+
+        <div class="alert alert-info small">
+          <div>要求：</div>
+          <ul class="mb-0">
+            <li>论文 PDF 匿名版（.pdf）≤ 100MB</li>
+          </ul>
+        </div>
+
+        <form method="post" action="/student/upload" enctype="multipart/form-data">
+          <div class="mb-2">
+            <label class="form-label">论文 PDF 匿名版</label>
+            <input class="form-control" type="file" name="paper_pdf_anonymous" accept="application/pdf" required>
+          </div>
+
+          <button class="btn btn-success" type="submit" {% if not team %}disabled{% endif %}>上传/更新</button>
+        </form>
+
+        <hr>
+
+        {% set has_pdf = submission and submission.paper_pdf_anonymous_path %}
+
+        <div>
+          <div class="mb-2">
+            提交状态：
+            {% if has_pdf %}
+              <span class="text-success">已提交</span>
+            {% else %}
+              <span class="text-danger">未提交</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% if has_pdf %}
+              <a class="btn btn-outline-primary btn-sm" href="/files/{{ submission.id }}/paper_pdf_anonymous" target="_blank">查看已提交匿名PDF</a>
+            {% else %}
+              <span class="text-muted">匿名PDF：-</span>
+            {% endif %}
+          </div>
+
+          <div class="text-muted mt-2">系统不显示任何分数，最终由超管导出后线下公布。</div>
+        </div>
+
+        <script>
+          (function () {
+            const el = document.getElementById("uploadAlert");
+            if (!el) return;
+
+            setTimeout(() => {
+              el.style.transition = "opacity 400ms ease";
+              el.style.opacity = "0";
+              setTimeout(() => {
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+              }, 450);
+            }, 3000);
+          })();
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
