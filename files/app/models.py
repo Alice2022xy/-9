@@ -87,6 +87,7 @@ class Submission(Base):
 
     # 仅保留：论文PDF匿名版
     paper_pdf_anonymous_path = Column(String(500), nullable=True)   # 论文PDF匿名版
+    plagiarism_report_path = Column(String(500), nullable=True)     # 查重报告PDF（可选）
 
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

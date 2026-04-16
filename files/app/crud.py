@@ -229,6 +229,7 @@ def create_or_update_submission_pdf(
     db: Session,
     team_id: int,
     paper_pdf_anonymous_path: str | None,
+    plagiarism_report_path: str | None = None,
 ) -> Submission:
     sub = get_submission_by_team(db, team_id)
     if sub is None:
@@ -237,6 +238,9 @@ def create_or_update_submission_pdf(
 
     if paper_pdf_anonymous_path is not None:
         sub.paper_pdf_anonymous_path = paper_pdf_anonymous_path
+
+    if plagiarism_report_path is not None:
+        sub.plagiarism_report_path = plagiarism_report_path
 
     sub.submitted_at = datetime.utcnow()
     db.commit()

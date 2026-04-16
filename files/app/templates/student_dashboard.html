@@ -113,7 +113,7 @@
 
   <div class="col-lg-6">
     <div class="card mb-3">
-      <div class="card-header">上传匿名论文 PDF</div>
+      <div class="card-header">上传论文文件</div>
       <div class="card-body">
         {% if upload_error %}
           <div id="uploadAlert" class="alert alert-danger" role="alert">
@@ -135,6 +135,7 @@
           <div>要求：</div>
           <ul class="mb-0">
             <li>论文 PDF 匿名版（.pdf）≤ 100MB</li>
+            <li>查重报告（可选，.pdf）≤ 10MB</li>
           </ul>
         </div>
 
@@ -144,12 +145,18 @@
             <input class="form-control" type="file" name="paper_pdf_anonymous" accept="application/pdf" required>
           </div>
 
+          <div class="mb-2">
+            <label class="form-label">查重报告（可选，PDF≤10MB）</label>
+            <input class="form-control" type="file" name="plagiarism_report" accept="application/pdf">
+          </div>
+
           <button class="btn btn-success" type="submit" {% if not team %}disabled{% endif %}>上传/更新</button>
         </form>
 
         <hr>
 
         {% set has_pdf = submission and submission.paper_pdf_anonymous_path %}
+        {% set has_pr = submission and submission.plagiarism_report_path %}
 
         <div>
           <div class="mb-2">
@@ -166,6 +173,11 @@
               <a class="btn btn-outline-primary btn-sm" href="/files/{{ submission.id }}/paper_pdf_anonymous" target="_blank">查看已提交匿名PDF</a>
             {% else %}
               <span class="text-muted">匿名PDF：-</span>
+            {% endif %}
+            {% if has_pr %}
+              <a class="btn btn-outline-secondary btn-sm" href="/files/{{ submission.id }}/plagiarism_report" target="_blank">查看查重报告</a>
+            {% else %}
+              <span class="text-muted">查重报告：-</span>
             {% endif %}
           </div>
 
