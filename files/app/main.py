@@ -276,6 +276,7 @@ def student_team_post(
 def student_upload_post(
     request: Request,
     paper_pdf_anonymous: UploadFile = File(...),
+    plagiarism_report: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
     user = require_user(request, db)
@@ -287,8 +288,10 @@ def student_upload_post(
         raise HTTPException(status_code=400, detail="请先保存参赛信息")
 
     MAX_100MB = 100 * 1024 * 1024
+    MAX_10MB = 10 * 1024 * 1024
 
     pdf_anonymous_path: str | None = None
+    plagiarism_report_path: str | None = None
 
     try:
         # 仅允许 PDF
@@ -304,6 +307,21 @@ def student_upload_post(
             max_bytes=MAX_100MB,
             too_large_message="匿名论文PDF需小于100MB",
         )
+
+        # 查重报告（可选）
+        if plagiarism_report and plagiarism_report.filename:
+            validate_suffix(
+                plagiarism_report.filename,
+                allowed={".pdf"},
+                error_message="查重报告仅支持 PDF（.pdf）",
+            )
+            dest_pr = UPLOAD_DIR / f"team{team.id}_plagiarism_report.pdf"
+            plagiarism_report_path = save_upload_with_limit(
+                plagiarism_report,
+                dest_pr,
+                max_bytes=MAX_10MB,
+                too_large_message="查重报告需小于10MB",
+            )
 
     except HTTPException as e:
         latest_submission = crud.get_submission_by_team(db, team.id)
@@ -323,8 +341,12 @@ def student_upload_post(
         db,
         team_id=team.id,
         paper_pdf_anonymous_path=pdf_anonymous_path,
+        plagiarism_report_path=plagiarism_report_path,
     )
     latest_submission = crud.get_submission_by_team(db, team.id)
+
+    pr_msg = "查重报告已更新" if plagiarism_report_path else "查重报告未上传"
+    upload_success_msg = f"上传成功：匿名论文PDF已更新；{pr_msg}。"
 
     return templates.TemplateResponse(
         "student_dashboard.html",
@@ -334,7 +356,7 @@ def student_upload_post(
             "team": team,
             "submission": latest_submission,
             "upload_error": None,
-            "upload_success": "上传成功：匿名论文PDF已更新。",
+            "upload_success": upload_success_msg,
         },
     )
 
@@ -360,9 +382,11 @@ def serve_submission_file(submission_id: int, kind: str, request: Request, db: S
         if not t or t.id != team.id:
             raise HTTPException(status_code=403)
 
-    # 仅保留匿名PDF
+    # 支持匿名PDF和查重报告
     if kind == "paper_pdf_anonymous":
         path = sub.paper_pdf_anonymous_path
+    elif kind == "plagiarism_report":
+        path = sub.plagiarism_report_path
     else:
         raise HTTPException(status_code=404)
 
